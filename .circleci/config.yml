@@ -1,0 +1,66 @@
+version: 2.1
+
+# Define an executor to use Docker with Node.js image
+executors:
+  node-executor:
+    docker:
+      - image: circleci/node:14  # Use Node.js 14 Docker image
+    working_directory: ~/repo
+
+# Define reusable commands
+commands:
+  install_dependencies:
+    description: "Install npm dependencies"
+    steps:
+      - run:
+          name: Install npm dependencies
+          command: npm install
+
+  run_tests:
+    description: "Run tests"
+    steps:
+      - run:
+          name: Run tests
+          command: npm test
+
+  build_application:
+    description: "Build the application"
+    steps:
+      - run:
+          name: Build application
+          command: npm run build
+
+# Define jobs
+jobs:
+  install:
+    executor: node-executor
+    steps:
+      - checkout
+      - install_dependencies
+
+  test:
+    executor: node-executor
+    steps:
+      - checkout
+      - install_dependencies
+      - run_tests
+
+  build:
+    executor: node-executor
+    steps:
+      - checkout
+      - install_dependencies
+      - build_application
+
+# Define workflows
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - install
+      - test:
+          requires:
+            - install
+      - build:
+          requires:
+            - test
